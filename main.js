@@ -45,6 +45,20 @@ app.on('ready', function(){
 
     Menu.setApplicationMenu(mainMenu);
 
+    //auto launch
+    ElectronSampleAppLauncher.enable();
+
+    ElectronSampleAppLauncher.isEnabled()
+    .then(function(isEnabled){
+        if(isEnabled){
+            return;
+        }
+        ElectronSampleAppLauncher.enable();
+    })
+    .catch(function(err){
+        // handle error
+    });
+
     //tray
     tray = new Tray(path.join(__dirname, '/assets/icons/png/Icon.png'));
     const contextMenu = Menu.buildFromTemplate([
@@ -76,25 +90,10 @@ function createAddWindow() {
         slashes: true
     }));
 
-    ElectronSampleAppLauncher.enable();
-
-    ElectronSampleAppLauncher.isEnabled()
-    .then(function(isEnabled){
-        if(isEnabled){
-            return;
-        }
-        ElectronSampleAppLauncher.enable();
-    })
-    .catch(function(err){
-        // handle error
-    });
-
     //garbage collection handle
     addWindow.on('close', function() {
         addWindow = null;
     });
-    
-
 }
 
 ipcMain.on('item:add', function(e, item){
