@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preferences</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+</head>
+<body>
+    <div class="container">
+        <form>
+            <p>
+                <label>
+                    <input type="checkbox" id="setting_auto_start" />
+                    <span>Auto-start application on login</span>
+              </label>
+            </p>
+            
+            <button class="btn waves-effect waves-light blue lighten-1" type="submit" id="apply_changes">OK</button>
+            <button class="btn waves-effect waves-light red lighten-1" type="submit" id="cancel">Cancel</button>
+        </form>
+    </div>
+    
+
+    <script>
+        const electron = require('electron');
+        const {ipcRenderer} = electron;
+
+        const apply_changes = document.getElementById('apply_changes');
+        const cancel = document.getElementById('cancel');
+        const setting_auto_start = document.getElementById('setting_auto_start');
+
+        apply_changes.addEventListener('click', function() {
+            if (setting_auto_start.checked) {
+                ipcRenderer.send('setting:set_auto_start');
+            } else (!setting_auto_start.checked) {
+                ipcRenderer.send('setting:unset_auto_start');
+            }
+        });
+
+        cancel.addEventListener('click', function() {
+            ipcRenderer.send('setting:cancel_settings');
+        });
+
+    </script>
+</body>
+</html>

@@ -10,6 +10,8 @@ let mainWindow;
 
 let addWindow;
 
+let preferenceWindow;
+
 let tray = null;
 
 const AutoLaunch = require('auto-launch')
@@ -96,6 +98,29 @@ function createAddWindow() {
     });
 }
 
+function createPreferenceWindow() {
+    preferenceWindow = new BrowserWindow({
+        width: 400,
+        height: 300,
+        title: 'Preferences',
+        webPreferences: {
+            nodeIntegration: true
+        }
+    });
+
+    //load html into window
+    preferenceWindow.loadURL(url.format({
+        pathname: path.join(__dirname, 'preferenceWindow.html'),
+        protocol: 'file',
+        slashes: true
+    }));
+
+    //close all windows and quit app when closed
+    preferenceWindow.on('closed', function() {
+        preferenceWIndow = null;
+    })
+}
+
 ipcMain.on('item:add', function(e, item){
     mainWindow.webContents.send('item:add', item);
     addWindow.close();
@@ -127,6 +152,12 @@ const mainMenuTemplate = [
                 }
             }
         ]
+    },
+    {
+        label: 'Preferences',
+        click() {
+            createPreferenceWindow();
+        }
     }
 ];
 
