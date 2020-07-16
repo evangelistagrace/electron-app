@@ -34,7 +34,7 @@
         apply_changes.addEventListener('click', function() {
             if (setting_auto_start.checked) {
                 ipcRenderer.send('setting:set_auto_start');
-            } else (!setting_auto_start.checked) {
+            } else if(!setting_auto_start.checked) {
                 ipcRenderer.send('setting:unset_auto_start');
             }
         });
