@@ -3,22 +3,23 @@ const url = require('url');
 const path = require('path');
 
 const {app, BrowserWindow, Menu, ipcMain, Tray} = electron;
+const AutoLaunch = require('auto-launch')
+// const ElectronSampleAppLauncher = new AutoLaunch({
+//   name: 'ShoppingList'
+// });
+
+const appLauncher = new AutoLaunch({
+    name: 'ShoppingList'
+  })
+
+let mainWindow,
+    addWindow,
+    preferenceWindow,
+    tray = null,
+    auto_launch = 0;
+
 //set env
 process.env.NODE_ENV = 'production';
-
-let mainWindow;
-
-let addWindow;
-
-let preferenceWindow;
-
-let tray = null;
-
-const AutoLaunch = require('auto-launch')
-
-const ElectronSampleAppLauncher = new AutoLaunch({
-  name: 'ShoppingList'
-});
 
 
 //listen for app to be ready
@@ -37,6 +38,14 @@ app.on('ready', function(){
         slashes: true
     }));
 
+    //auto launch
+    if(auto_launch === 0) {
+        disableAutoLaunch();
+    } else{
+        enableAutoLaunch();
+    }
+
+
     //close all windows and quit app when closed
     mainWindow.on('closed', function() {
         app.quit();
@@ -46,20 +55,6 @@ app.on('ready', function(){
     const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
 
     Menu.setApplicationMenu(mainMenu);
-
-    //auto launch
-    ElectronSampleAppLauncher.enable();
-
-    ElectronSampleAppLauncher.isEnabled()
-    .then(function(isEnabled){
-        if(isEnabled){
-            return;
-        }
-        ElectronSampleAppLauncher.enable();
-    })
-    .catch(function(err){
-        // handle error
-    });
 
     //tray
     tray = new Tray(path.join(__dirname, '/assets/icons/png/Icon.png'));
@@ -72,6 +67,24 @@ app.on('ready', function(){
     tray.setToolTip('This is my application.')
     tray.setContextMenu(contextMenu)
 });
+
+function enableAutoLaunch () {
+    console.log('enabled')
+    return appLauncher
+      .isEnabled()
+      .then(enabled => {
+        if (!enabled) return appLauncher.enable()
+      })
+  }
+  
+  function disableAutoLaunch () {
+      console.log('disabled')
+    return appLauncher
+      .isEnabled()
+      .then(enabled => {
+        if (enabled) return appLauncher.disable()
+      })
+  }
 
 //handle create add window
 function createAddWindow() {
@@ -121,10 +134,25 @@ function createPreferenceWindow() {
     })
 }
 
+//ipcmain handlers
 ipcMain.on('item:add', function(e, item){
     mainWindow.webContents.send('item:add', item);
     addWindow.close();
-})
+});
+
+ipcMain.on('setting:set_auto_start', function(e, item){
+    preferenceWindow.close();
+ });
+
+ ipcMain.on('setting:unset_auto_start', function(e, item){
+    preferenceWindow.close();
+ });
+
+ ipcMain.on('setting:cancel_settings', function(e, item){
+    
+    console.log('cancel settings');
+    preferenceWindow.close();
+ });
 
 //create menu template
 const mainMenuTemplate = [
@@ -158,11 +186,8 @@ const mainMenuTemplate = [
         click() {
             createPreferenceWindow();
         }
-    }
-];
-
-if(process.env.NODE_ENV !== 'production') {
-    mainMenuTemplate.push({
+    },
+    {
         label: 'Developer Tools',
         submenu: [
             {
@@ -176,5 +201,23 @@ if(process.env.NODE_ENV !== 'production') {
                 role: 'reload'
             }
         ]
-    })
-}
+    }
+];
+
+// if(process.env.NODE_ENV !== 'production') {
+//     mainMenuTemplate.push({
+//         label: 'Developer Tools',
+//         submenu: [
+//             {
+//                 label: 'Toggle DevTools',
+//                 accelerator: process.platform == 'darwin' ? 'Command+I' : 'Ctrl+I',
+//                 click(item, focusedWindow) {
+//                     focusedWindow.toggleDevTools();
+//                 }
+//             },
+//             {
+//                 role: 'reload'
+//             }
+//         ]
+//     })
+// }
